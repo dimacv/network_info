@@ -1,23 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+#to delete
+#178.0.0.0/8, 0.0.0.0/0, description Not allocated by APNIC, netname NON-RIPE-NCC-MANAGED-ADDRESS-BLOCK, netname ERX-NETBLOCK, netname IANA-NETBLOCK-31, desc contains This network range is not allocated to APNIC., This network range is not fully allocated to APNIC.
 import argparse
 import gzip
 import time
 from multiprocessing import cpu_count, Queue, Process, current_process
 import logging
 
+import gc
 import re
 import os.path
 from db.model import Block
 from db.helper import setup_connection
 from netaddr import iprange_to_cidrs
 import math
+import subprocess
 
-VERSION = '2.0'
-FILELIST = ['afrinic.db.gz', 'apnic.db.inet6num.gz', 'apnic.db.inetnum.gz', 'arin.db.gz',
-            'delegated-lacnic-extended-latest', 'ripe.db.inetnum.gz', 'ripe.db.inet6num.gz']
-NUM_WORKERS = cpu_count()
+VERSION = '2.1'
+
+PHP = False
+
+FILELIST = ['apnic.db.inetnum.gz', 'delegated-arin-extended-latest', 'delegated-ripencc-latest', 'delegated-afrinic-latest', 'delegated-apnic-latest', 'delegated-lacnic-latest', 'lacnic.db.gz', 'afrinic.db.gz', 'apnic.db.inet6num.gz', 'arin.db.gz',
+            'ripe.db.inetnum.gz', 'ripe.db.inet6num.gz']
+
+
+DESCRIPTLIMIT = 400
+#NUM_WORKERS = cpu_count()
+NUM_WORKERS = 8
 LOG_FORMAT = '%(asctime)-15s - %(name)-9s - %(levelname)-8s - %(processName)-11s - %(filename)s - %(message)s'
 COMMIT_COUNT = 10000
 NUM_BLOCKS = 0
@@ -47,10 +58,20 @@ def get_source(filename: str):
         return b'apnic'
     elif filename.startswith('arin'):
         return b'arin'
-    elif 'lacnic' in filename:
+    elif filename.startswith('lacnic'):
         return b'lacnic'
     elif filename.startswith('ripe'):
         return b'ripe'
+    elif filename.startswith('delegated-arin-extended-latest'):
+        return b'd-arin'
+    elif filename.startswith('delegated-ripencc-latest'):
+        return b'd-ripencc'
+    elif filename.startswith('delegated-afrinic-latest'):
+        return b'd-afrinic'
+    elif filename.startswith('delegated-apnic-latest'):
+        return b'd-apnic'
+    elif filename.startswith('delegated-lacnic-latest'):
+        return b'd-lacnic'
     else:
         logger.error(f"Can not determine source for {filename}")
     return None
@@ -59,6 +80,9 @@ def get_source(filename: str):
 def parse_property(block: str, name: str) -> str:
     match = re.findall(b'^%s:\s?(.+)$' % (name), block, re.MULTILINE)
     if match:
+        if name == b'descr':
+            match = match[:1]
+            match[0] = match[0][:DESCRIPTLIMIT]
         # remove empty lines and remove multiple names
         x = b' '.join(list(filter(None, (x.strip().replace(
             b"%s: " % name, b'').replace(b"%s: " % name, b'') for x in match))))
@@ -69,24 +93,57 @@ def parse_property(block: str, name: str) -> str:
         return None
 
 
+def parse_property_mail(block: str) -> str:
+    match = re.findall(
+        rb'[\s]*(?:[_a-zA-Z0-9-\+\*-]+)(?:\.[_a-zA-Z0-9-]+)*@(?:[a-zA-Z0-9-]+)(?:\.[a-zA-Z0-9-]+)*(?:\.[a-zA-Z]{2,})[\s]*',
+        block, re.MULTILINE)
+    if match:
+        return  ' '.join(match[0].strip().decode('latin-1').split())
+    else:
+        return None
+
+
 def parse_property_inetnum(block: str) -> str:
     # IPv4
     match = re.findall(
-        rb'^inetnum:[\s]*((?:\d{1,3}\.){3}\d{1,3})[\s]*-[\s]*((?:\d{1,3}\.){3}\d{1,3})', block, re.MULTILINE)
+        rb'^inetnum:[\s]*((?:\d{1,3}\.){3}\d{1,3})[\s]*-[\s]*((?:\d{1,3}\.){3}\d{1,3})$', block, re.MULTILINE)
     if match:
         # netaddr can only handle strings, not bytes
         ip_start = match[0][0].decode('utf-8')
         ip_end = match[0][1].decode('utf-8')
         cidrs = iprange_to_cidrs(ip_start, ip_end)
+  #       del ip_start
+  #       del ip_end
+  #       gc.collect()
         return cidrs
+    #CIDR lacnic short x.x/22
+    match = re.findall(
+        rb'^inetnum:[\s]*((?:\d{1,3}\.\d{1,3}(?:/\d{1,2}|)))$', block, re.MULTILINE)
+    if match:
+        return match[0]
+    #CIDR lacnic short x.x.x/22
+    match = re.findall(
+        rb'^inetnum:[\s]*((?:\d{1,3}\.\d{1,3}\.\d{1,3}(?:/\d{1,2}|)))$', block, re.MULTILINE)
+    if match:
+        return match[0]
+    #CIDR lacnic
+    match = re.findall(
+        rb'^inetnum:[\s]*((?:\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:/\d{1,2}|)))$', block, re.MULTILINE)
+    if match:
+        return match[0]
+    # CIDR
+    match = re.findall(
+        rb'^route:[\s]*((?:\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:/\d{1,2}|)))$', block, re.MULTILINE)
+    if match:
+        return match[0]
     # IPv6
     match = re.findall(
-        rb'^inet6num:[\s]*([0-9a-fA-F:\/]{1,43})', block, re.MULTILINE)
+        rb'^inet6num:[\s]*([0-9a-fA-F:\/]{1,43})$', block, re.MULTILINE)
     if match:
         return match[0]
     # LACNIC translation for IPv4
     match = re.findall(
-        rb'^inet4num:[\s]*((?:\d{1,3}\.){3}\d{1,3}/\d{1,2})', block, re.MULTILINE)
+        rb'^inet4num:[\s]*((?:\d{1,3}\.){3}\d{1,3}/\d{1,2})$', block, re.MULTILINE)
     if match:
         return match[0]
     logger.warning(f"Could not parse inetnum on block {block}")
@@ -104,10 +161,10 @@ def read_blocks(filename: str) -> list:
 
     with opemethod(filename, mode='rb') as f:
         # Translation for LACNIC DB
-        if filename.endswith('delegated-lacnic-extended-latest'):
+        if filename.endswith('delegated-arin-extended-latest') or filename.endswith('delegated-ripencc-latest') or filename.endswith('delegated-afrinic-latest') or filename.endswith('delegated-apnic-latest') or filename.endswith('delegated-lacnic-latest'):
             for line in f:
                 line = line.strip()
-                if line.startswith(b'lacnic'):
+                if line.startswith(b'arin') or line.startswith(b'ripencc') or line.startswith(b'afrinic') or line.startswith(b'apnic') or line.startswith(b'lacnic'):
                     elements = line.split(b'|')
                     if len(elements) >= 7:
                         # convert lacnic to ripe format
@@ -138,7 +195,8 @@ def read_blocks(filename: str) -> list:
                     else:
                         logger.warning(f"Invalid line: {line}")
                 else:
-                    logger.warning(f"line does not start with lacnic: {line}")
+                    logger.warning(f"line does not start as expected: {line}")
+
         # All other DBs goes here
         else:
             for line in f:
@@ -147,7 +205,7 @@ def read_blocks(filename: str) -> list:
                     continue
                 # block end
                 if line.strip() == b'':
-                    if single_block.startswith(b'inetnum:') or single_block.startswith(b'inet6num:'):
+                    if single_block.startswith(b'inetnum:') or single_block.startswith(b'inet6num:') or single_block.startswith(b'route:'):
                         # add source
                         single_block += b"cust_source: %s" % (cust_source)
                         blocks.append(single_block)
@@ -185,18 +243,22 @@ def parse_blocks(jobs: Queue, connection_string: str):
         description = parse_property(block, b'descr')
         country = parse_property(block, b'country')
         maintained_by = parse_property(block, b'mnt-by')
+        origin = parse_property(block, b'origin')
         created = parse_property(block, b'created')
         last_modified = parse_property(block, b'last-modified')
         source = parse_property(block, b'cust_source')
+        mail = parse_property_mail(block)
 
         if isinstance(inetnum, list):
             for cidr in inetnum:
                 b = Block(inetnum=str(cidr), netname=netname, description=description, country=country,
-                          maintained_by=maintained_by, created=created, last_modified=last_modified, source=source)
+                          maintained_by=maintained_by, origin=origin, created=created, last_modified=last_modified, source=source,
+                          mail = str(mail))
                 session.add(b)
         else:
             b = Block(inetnum=inetnum.decode('utf-8'), netname=netname, description=description, country=country,
-                      maintained_by=maintained_by, created=created, last_modified=last_modified, source=source)
+                      maintained_by=maintained_by, origin=origin, created=created, last_modified=last_modified, source=source,
+                      mail=str(mail))
             session.add(b)
 
         counter += 1
@@ -206,11 +268,12 @@ def parse_blocks(jobs: Queue, connection_string: str):
             session.close()
             session = setup_connection(connection_string)
             # not really accurate at the moment
-            percent = (BLOCKS_DONE * NUM_WORKERS * 100) / NUM_BLOCKS
-            if percent > 100:
-                percent = 100
-            logger.debug('committed {} blocks ({} seconds) {:.1f}% done.'.format(
-                counter, round(time.time() - start_time, 2), percent))
+            if NUM_BLOCKS != 0:
+                percent = (BLOCKS_DONE * NUM_WORKERS * 100) / NUM_BLOCKS
+                if percent > 100:
+                    percent = 100
+                logger.debug('committed {} blocks ({} seconds) {:.1f}% done.'.format(
+                    counter, round(time.time() - start_time, 2), percent))
             counter = 0
             start_time = time.time()
     session.commit()
@@ -269,6 +332,8 @@ def main(connection_string):
     CURRENT_FILENAME = "empty"
     logger.info(
         f"script finished: {round(time.time() - overall_start_time, 2)} seconds")
+    if PHP:
+        subprocess.call("php /dbworker/network_info/cleaning.php")
 
 
 if __name__ == '__main__':
