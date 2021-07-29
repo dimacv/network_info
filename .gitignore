@@ -4,7 +4,8 @@
 env/
 .bash_history
 .cache/
-databases/ripe.db.inetnum.bckp1.gz
-databases/ripe.db.inetnum.gz
 create_db_Сv10.py
-databases/arin.db.gz
+databases/*.gz
+databases/*.db
+databases/*-extended-latest
+
