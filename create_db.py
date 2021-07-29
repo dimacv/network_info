@@ -134,8 +134,7 @@ def parse_property_inetnum(block: str) -> str:
     if match:
         return match[0]
     # CIDR
-    match = re.findall(
-        rb'^route:[\s]*((?:\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:/\d{1,2}|)))$', block, re.MULTILINE)
+    match = re.findall(rb'^route:[\s]*((?:\d{1,3}\.){3}\d{1,3}(?:/\d{1,2}|))', block, re.MULTILINE)
     if match:
         return match[0]
     # IPv6
