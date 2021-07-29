@@ -18,12 +18,15 @@ from netaddr import iprange_to_cidrs
 import math
 import subprocess
 
-VERSION = '2.1'
+VERSION = '2.2'
 
 PHP = True
 
-FILELIST = ['apnic.db.inetnum.gz', 'delegated-arin-extended-latest', 'delegated-ripencc-latest', 'delegated-afrinic-latest', 'delegated-apnic-latest', 'delegated-lacnic-latest', 'lacnic.db.gz', 'afrinic.db.gz', 'apnic.db.inet6num.gz', 'arin.db.gz',
-            'ripe.db.inetnum.gz', 'ripe.db.inet6num.gz']
+FILELIST = ['afrinic.db.gz', 'arin.db.gz', 'lacnic.db.gz',
+            'apnic.db.inetnum.gz', 'apnic.db.inet6num.gz', 'apnic.db.aut-num.gz',
+            'delegated-arin-extended-latest', 'delegated-ripencc-latest', 'delegated-afrinic-latest',
+            'delegated-apnic-latest', 'delegated-lacnic-latest',
+            'ripe.db.inetnum.gz', 'ripe.db.inet6num.gz', 'ripe.db.aut-num.gz']
 
 DESCRIPTLIMIT = 400 # Setting a limit on the number of characters in the "description" field.
 #NUM_WORKERS = cpu_count()
