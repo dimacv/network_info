@@ -4,3 +4,8 @@
 env/
 .bash_history
 .cache/
+databases\ripe.db.inetnum.bckpl.gz
+databases\ripe.db.inetnum.gz
+
+databases/ripe.db.inetnum.bckp1.gz
+databases/ripe.db.inetnum.gz
