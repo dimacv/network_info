@@ -28,7 +28,6 @@ FILELIST = ['afrinic.db.gz', 'arin.db.gz', 'lacnic.db.gz',
             'delegated-apnic-latest', 'delegated-lacnic-latest',
             'ripe.db.inetnum.gz', 'ripe.db.inet6num.gz', 'ripe.db.aut-num.gz']
 
-
 DESCRIPTLIMIT = 400 # Setting a limit on the number of characters in the "description" field.
 #NUM_WORKERS = cpu_count()
 NUM_WORKERS = 8
