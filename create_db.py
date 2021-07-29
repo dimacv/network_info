@@ -25,7 +25,7 @@ PHP = True
 FILELIST = ['apnic.db.inetnum.gz', 'delegated-arin-extended-latest', 'delegated-ripencc-latest', 'delegated-afrinic-latest', 'delegated-apnic-latest', 'delegated-lacnic-latest', 'lacnic.db.gz', 'afrinic.db.gz', 'apnic.db.inet6num.gz', 'arin.db.gz',
             'ripe.db.inetnum.gz', 'ripe.db.inet6num.gz']
 
-DESCRIPTLIMIT = 400
+DESCRIPTLIMIT = 400 # Setting a limit on the number of characters in the "description" field.
 #NUM_WORKERS = cpu_count()
 NUM_WORKERS = 8
 LOG_FORMAT = '%(asctime)-15s - %(name)-9s - %(levelname)-8s - %(processName)-11s - %(filename)s - %(message)s'
