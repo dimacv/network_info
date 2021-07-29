@@ -12,12 +12,12 @@ function download {
 #overall asn list
 download "ftp://ftp.ripe.net/ripe/asnames/asn.txt"
 
-#delegated extended version
+#delegated extended version 
 download "ftp://ftp.arin.net/pub/stats/arin/delegated-arin-extended-latest"
 download "ftp://ftp.ripe.net/ripe/stats/delegated-ripencc-extended-latest"
 download "ftp://ftp.afrinic.net/pub/stats/afrinic/delegated-afrinic-extended-latest"
 download "ftp://ftp.apnic.net/pub/stats/apnic/delegated-apnic-extended-latest"
-download "ftp://ftp.lacnic.net/pub/stats/lacnic/delegated-lacnic-extended-latest"
+download "ftp://ftp.lacnic.net/pub/stats/lacnic/delegated-lacnic-extended-latest" 
 
 #main db (AFRINIC, ARIN, LACNIC)
 download "https://ftp.afrinic.net/pub/dbase/afrinic.db.gz"

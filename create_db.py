@@ -20,11 +20,10 @@ import subprocess
 
 VERSION = '2.1'
 
-PHP = False
+PHP = True
 
 FILELIST = ['apnic.db.inetnum.gz', 'delegated-arin-extended-latest', 'delegated-ripencc-latest', 'delegated-afrinic-latest', 'delegated-apnic-latest', 'delegated-lacnic-latest', 'lacnic.db.gz', 'afrinic.db.gz', 'apnic.db.inet6num.gz', 'arin.db.gz',
             'ripe.db.inetnum.gz', 'ripe.db.inet6num.gz']
-
 
 DESCRIPTLIMIT = 400
 #NUM_WORKERS = cpu_count()
