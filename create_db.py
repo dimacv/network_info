@@ -3,6 +3,7 @@
 
 #to delete
 #178.0.0.0/8, 0.0.0.0/0, description Not allocated by APNIC, netname NON-RIPE-NCC-MANAGED-ADDRESS-BLOCK, netname ERX-NETBLOCK, netname IANA-NETBLOCK-31, desc contains This network range is not allocated to APNIC., This network range is not fully allocated to APNIC.
+
 import argparse
 import gzip
 import time
@@ -18,15 +19,17 @@ from netaddr import iprange_to_cidrs
 import math
 import subprocess
 
-VERSION = '2.2'
+VERSION = '2.3'
 
 PHP = True
 
-FILELIST = ['afrinic.db.gz', 'arin.db.gz', 'lacnic.db.gz',
-            'apnic.db.inetnum.gz', 'apnic.db.inet6num.gz', 'apnic.db.aut-num.gz',
-            'delegated-arin-extended-latest', 'delegated-ripencc-latest', 'delegated-afrinic-latest',
-            'delegated-apnic-latest', 'delegated-lacnic-latest',
-            'ripe.db.inetnum.gz', 'ripe.db.inet6num.gz', 'ripe.db.aut-num.gz']
+FILELIST = ['afrinic.db.gz','arin.db.gz','lacnic.db.gz',
+            'apnic.db.inetnum.gz','apnic.db.inet6num.gz','apnic.db.aut-num.gz',
+            'ripe.db.inetnum.gz','ripe.db.inet6num.gz','ripe.db.aut-num.gz',
+            'delegated-arin-extended-latest','delegated-ripencc-extended-latest'
+            'delegated-afrinic-extended-latest','delegated-apnic-extended-latest'
+            'delegated-lacnic-extended-latest']
+
 
 DESCRIPTLIMIT = 400 # Setting a limit on the number of characters in the "description" field.
 #NUM_WORKERS = cpu_count()
