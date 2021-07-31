@@ -67,15 +67,15 @@ def get_source(filename: str):
         return b'lacnic'
     elif filename.startswith('ripe'):
         return b'ripe'
-    elif filename.startswith('delegated-arin-extended-latest'):
+    elif filename.startswith('delegated-arin'):
         return b'd-arin'
-    elif filename.startswith('delegated-ripencc-latest'):
+    elif filename.startswith('delegated-ripencc'):
         return b'd-ripencc'
-    elif filename.startswith('delegated-afrinic-latest'):
+    elif filename.startswith('delegated-afrinic'):
         return b'd-afrinic'
-    elif filename.startswith('delegated-apnic-latest'):
+    elif filename.startswith('delegated-apnic'):
         return b'd-apnic'
-    elif filename.startswith('delegated-lacnic-latest'):
+    elif filename.startswith('delegated-lacnic'):
         return b'd-lacnic'
     else:
         logger.error(f"Can not determine source for {filename}")
