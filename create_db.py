@@ -26,8 +26,8 @@ PHP = True
 FILELIST = ['afrinic.db.gz','arin.db.gz','lacnic.db.gz',
             'apnic.db.inetnum.gz','apnic.db.inet6num.gz','apnic.db.aut-num.gz',
             'ripe.db.inetnum.gz','ripe.db.inet6num.gz','ripe.db.aut-num.gz',
-            'delegated-arin-extended-latest','delegated-ripencc-extended-latest'
-            'delegated-afrinic-extended-latest','delegated-apnic-extended-latest'
+            'delegated-arin-extended-latest','delegated-ripencc-extended-latest',
+            'delegated-afrinic-extended-latest','delegated-apnic-extended-latest',
             'delegated-lacnic-extended-latest']
 
 
