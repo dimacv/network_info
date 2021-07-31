@@ -165,7 +165,9 @@ def read_blocks(filename: str) -> list:
 
     with opemethod(filename, mode='rb') as f:
         # Translation for LACNIC DB
-        if filename.endswith('delegated-arin-extended-latest') or filename.endswith('delegated-ripencc-latest') or filename.endswith('delegated-afrinic-latest') or filename.endswith('delegated-apnic-latest') or filename.endswith('delegated-lacnic-latest'):
+        if filename.endswith('delegated-arin-extended-latest') or filename.endswith('delegated-ripencc-extended-latest')\
+                or filename.endswith('delegated-afrinic-extended-latest') or filename.endswith('delegated-apnic-extended-latest') \
+                or filename.endswith('delegated-lacnic-extended-latest'):
             for line in f:
                 line = line.strip()
                 if line.startswith(b'arin') or line.startswith(b'ripencc') or line.startswith(b'afrinic') or line.startswith(b'apnic') or line.startswith(b'lacnic'):
